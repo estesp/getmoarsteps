@@ -1,0 +1,11 @@
+applications:
+- services:
+  - Wearable Fitness-50
+  - Reverse Geocoding-ba
+  name: getmoarsteps
+  host: getmoarsteps
+  command: node app.js
+  path: .
+  domain: ng.bluemix.net
+  instances: 1
+  memory: 384M
