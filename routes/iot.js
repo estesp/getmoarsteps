@@ -1,65 +1,83 @@
-
 var env = JSON.parse(process.env.VCAP_SERVICES);
-var iotprops = getEnv(env, 'Wearable-');
-
-var querystring = require('querystring');
-var https = require('https');
-var url = require('url');
+var iotprops = {};
 
 exports.getDeviceData = function(req, res) {
     var user = req.body.username;
     var pw = req.body.pw;
-    console.log("Username: "+user);
-    console.log("Iot app id: "+iotprops.appId);
-    console.log("Iot URL: "+iotprops.url);
-    queryFitbitData(user, pw, '2014-05-16', updateDataView);
-    res.render('iotview');
+    var tzoffset = -(req.body.tzoffset);
+
+    getCredentials(env, 'Wearable');
+
+    queryFitbitData(user, pw, currentDateToYMDForm(tzoffset),
+                    function(respData) {
+                      res.render('iotview', respData);
+                    });
+
 };
 
-function getEnv(vcapEnv, serviceNameStr) {
-    for (var serviceOfferingName in vcapEnv) {
-        if (vcapEnv.hasOwnProperty(serviceOfferingName) &&
-            serviceOfferingName.indexOf(serviceNameStr) === 0) {
-              var serviceBindingData = vcapEnv[serviceOfferingName][0];
-              return serviceBindingData.credentials;
-        }
-    }
+function currentDateToYMDForm(tzOffset) {
+
+    //get the server's offset in hours
+    var tmpDateObj = new Date();
+    var srvOffset = tmpDateObj.getTimezoneOffset()/60;
+    //to get local client time take the client's offset + server's offset
+    var actualOff = tzOffset+srvOffset;
+    //now get the actual date by getting time in ms and adding the offset ms
+    var dateObj = new Date( new Date().getTime() + (actualOff * 3600 * 1000));
+    console.log(''+dateObj);
+
+    //IoT API wants YYYY-MM-DD; generate that from the date obj
+    var day = dateObj.getDate();
+    var mon = dateObj.getMonth() + 1;
+    var year = dateObj.getFullYear();
+    return '' + year + '-' +
+           (mon <= 9 ? '0' + mon : mon) + '-' +
+           (day <= 9 ? '0' + day : day);
 }
 
-function updateDataView(respObj) {
+function getCredentials(vcapEnv, serviceNameStr) {
 
+    vcapEnv['user-provided'].forEach(function(service) {
+      if (service.name.indexOf(serviceNameStr) === 0) {
+          iotprops = service.credentials;
+      }
+    });
 }
 
 function queryFitbitData(username, password, datestr, callbackFn) {
 
-  var iotURLObj = url.parse(iotprops.url);
-  var host = iotURLObj.host;
-  var authStr = username+":"+password;
-  var endpoint = "/iot/doc?id=fb_activity_"+datestr+"&appId="+iotprops.appId;
+    var https = require('https');
+    var url = require('url');
 
-  var options = {
-    host: host,
-    path: endpoint,
-    method: "GET",
-    auth: authStr
-  };
+    var iotURLObj = url.parse(iotprops.url);
+    var host = iotURLObj.host;
+    var authStr = username+":"+password;
+    var endpoint = "/iot/doc?id=fb_activity_"+datestr+"&appId="+iotprops.appId;
 
+    var options = {
+      host: host,
+      path: endpoint,
+      method: "GET",
+      auth: authStr
+    };
+    console.log("URL: "+host+" / Endpoint: "+endpoint);
+
+    //send the request to the IoT API
     var req = https.request(options, function(res) {
-    res.setEncoding('utf-8');
+      res.setEncoding('utf-8');
+      var responseString = '';
 
-    var responseString = '';
+      res.on('data', function(data) {
+        responseString += data;
+      });
 
-    res.on('data', function(data) {
-      responseString += data;
+      res.on('end', function() {
+        console.log(responseString);
+        var responseObject = JSON.parse(responseString);
+        callbackFn(responseObject);
+      });
     });
 
-    res.on('end', function() {
-      console.log(responseString);
-      var responseObject = JSON.parse(responseString);
-      callbackFn(responseObject);
-    });
-  });
-
-  req.write(dataString);
-  req.end();
+    req.write(""); //method == GET, no data
+    req.end();
 }
