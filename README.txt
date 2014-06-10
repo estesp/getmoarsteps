@@ -1,14 +1,10 @@
-Node JS Web Starter application using IBM DataCache Service
+Node.JS application using Wearable API and Pitney Bowes Geolocation Services
 
-This sample application demonstrates how to write a Node JS application using IBM DataCache REST interface and deploy it on BlueMix.
+This sample Node.JS application demonstrates the use of the Wearable IoT API
+service and the Pitney Bowes Geolocation service in concert with IBM's Bluemix
+PaaS offering.
 
 Files
-
-Node JS Web Starter application using IBM DataCache Service contains the following contents:
-
-*   instructions.md
-
-	This file describes the Next Steps for getting started with this template.
 
 *   app.js
 
