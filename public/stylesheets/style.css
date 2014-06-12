@@ -41,3 +41,46 @@ h1 {
 .buttonContainer {
 	padding: 5px 20px;
 }
+
+.status {
+   font-family:
+   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
+    font-size: 1.7em;
+    text-align: center;
+    font-style: italic;
+}
+
+.fbinfobox {
+  border-radius: 4px;
+  color: #3b4b54;
+  background-color: #dfe6eb;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+  font-size: 1em;
+  padding: 13px;
+  margin-top: 5px;
+  vertical-align: top;
+
+}
+
+.steps {
+    font-family: "Georgia", "Times New Roman",serif;
+    font-weight: bold;
+    font-size: 2.4em;
+    font-style: italic;
+    color: black;
+    width: 50%;
+}
+
+.fbdetail {
+  color: #6b7b84;
+  background-color: #dfe6eb;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 400;
+  font-size: .950em;
+  float: right;
+  vertical-align: top;
+  text-align: right;
+
+}

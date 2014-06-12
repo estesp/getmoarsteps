@@ -1,22 +1,36 @@
+//BlueMix hands us our service connection data in the VCAP_SERVICES variable
 var env = JSON.parse(process.env.VCAP_SERVICES);
 var iotprops = {};
 
+//When the login page POSTs, we get the Wearable API auth info and the client
+//browser timezone - caveat is that a user in a different tz than the FitBit
+//will not get fully appropriate results based on time of day, although the
+//FitBit data itself *will* be correct, just our app assumptions will be wrong
 exports.getDeviceData = function(req, res) {
     var user = req.body.username;
     var pw = req.body.pw;
     var tzoffset = -(req.body.tzoffset);
 
+    //look at the VCAP_SERVICES variable and grab the credentials for the
+    //Wearable IoT service
     getCredentials(env, 'Wearable');
 
-    queryFitbitData(user, pw, currentDateToYMDForm(tzoffset),
+    var curDateTime = getClientCurrentDateTime(tzoffset);
+
+    //calculate the percentage of "today" that is gone for our status page
+    var percentOfDay = curDateTime.getHours()*60 + curDateTime.getMinutes();
+    percentOfDay = percentOfDay / (24*60) * 100;
+
+    //call the Wearable API for today's data, and then render the response page
+    queryFitbitData(user, pw, currentDateToYMDForm(curDateTime),
                     function(respData) {
+                      respData["daypercent"] = percentOfDay;
                       res.render('iotview', respData);
                     });
 
 };
 
-function currentDateToYMDForm(tzOffset) {
-
+function getClientCurrentDateTime(tzOffset) {
     //get the server's offset in hours
     var tmpDateObj = new Date();
     var srvOffset = tmpDateObj.getTimezoneOffset()/60;
@@ -24,7 +38,10 @@ function currentDateToYMDForm(tzOffset) {
     var actualOff = tzOffset+srvOffset;
     //now get the actual date by getting time in ms and adding the offset ms
     var dateObj = new Date( new Date().getTime() + (actualOff * 3600 * 1000));
-    console.log(''+dateObj);
+    return dateObj;
+}
+
+function currentDateToYMDForm(dateObj) {
 
     //IoT API wants YYYY-MM-DD; generate that from the date obj
     var day = dateObj.getDate();
@@ -35,18 +52,9 @@ function currentDateToYMDForm(tzOffset) {
            (day <= 9 ? '0' + day : day);
 }
 
-function getCredentials(vcapEnv, serviceNameStr) {
-
-    vcapEnv['user-provided'].forEach(function(service) {
-      if (service.name.indexOf(serviceNameStr) === 0) {
-          iotprops = service.credentials;
-      }
-    });
-}
-
 function queryFitbitData(username, password, datestr, callbackFn) {
 
-    var https = require('https');
+    var restcall = require('../restcall');
     var url = require('url');
 
     var iotURLObj = url.parse(iotprops.url);
@@ -60,24 +68,18 @@ function queryFitbitData(username, password, datestr, callbackFn) {
       method: "GET",
       auth: authStr
     };
+    
     console.log("URL: "+host+" / Endpoint: "+endpoint);
 
     //send the request to the IoT API
-    var req = https.request(options, function(res) {
-      res.setEncoding('utf-8');
-      var responseString = '';
+    restcall.get(options, true, callbackFn);
+}
 
-      res.on('data', function(data) {
-        responseString += data;
-      });
+function getCredentials(vcapEnv, serviceNameStr) {
 
-      res.on('end', function() {
-        console.log(responseString);
-        var responseObject = JSON.parse(responseString);
-        callbackFn(responseObject);
-      });
+    vcapEnv['user-provided'].forEach(function(service) {
+      if (service.name.indexOf(serviceNameStr) === 0) {
+          iotprops = service.credentials;
+      }
     });
-
-    req.write(""); //method == GET, no data
-    req.end();
 }

@@ -65,6 +65,18 @@ h5 {
   font-stretch: normal;
   font-size: 0.75em;
 }
+
+.infomsg {
+  border-radius: 4px;
+  color: #3b4b54;
+  background-color: #dfe6eb;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight: 300;
+  font-size: 0.875em;
+  padding: 10px;
+  margin-top: 25px;
+}
+
 a,
 a:hover {
   text-decoration: underline;

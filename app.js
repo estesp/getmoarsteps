@@ -6,6 +6,7 @@
 var express = require('express'),
   routes = require('./routes'),
   iot = require('./routes/iot'),
+  tbs = require('./routes/tbs'),
   http = require('http'),
   path = require('path');
 var app = express();
@@ -28,6 +29,7 @@ if ('development' === app.get('env')) {
 
 app.get('/', routes.index);
 app.post("/iot", iot.getDeviceData);
+app.get("/tbs", tbs.travelBoundary);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

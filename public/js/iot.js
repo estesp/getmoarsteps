@@ -1,23 +1,33 @@
 
+/* HTML5 Demos geo example by @remy, modified for my purposes below.
+ * Licensed: https://github.com/remy/html5demos/blob/master/MIT-LICENSE.TXT
+ */
+
 function success(position) {
   var s = document.querySelector('#status');
 
   if (s.className == 'success') {
-    // not sure why we're hitting this twice in FF, I think it's to do with a cached result coming back
+    // not sure why we're hitting this twice in FF, I think it has to
+		// do with a cached result coming back
     return;
   }
 
-  s.innerHTML = "found you!";
+  s.innerHTML = "Found.";
   s.className = 'success';
 
   var mapcanvas = document.createElement('div');
   mapcanvas.id = 'mapcanvas';
   mapcanvas.style.height = '400px';
-  mapcanvas.style.width = '560px';
+  mapcanvas.style.width = '400px';
 
   document.querySelector('article').appendChild(mapcanvas);
 
-  var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+	document.getElementById('poslat').value = position.coords.latitude;
+	document.getElementById('poslon').value = position.coords.longitude;
+
+  var latlng = new google.maps.LatLng(position.coords.latitude,
+																			position.coords.longitude);
+
   var myOptions = {
     zoom: 15,
     center: latlng,
@@ -25,27 +35,42 @@ function success(position) {
     navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-  var map = new google.maps.Map(document.getElementById("mapcanvas"), myOptions);
+
+  var map = new google.maps.Map(document.getElementById("mapcanvas"),
+																myOptions);
 
   var marker = new google.maps.Marker({
       position: latlng,
       map: map,
-      title:"You are here! (at least within a "+position.coords.accuracy+" meter radius)"
+      title: "You are here! (at least within a "+ position.coords.accuracy +
+						 " meter radius)"
   });
 }
 
 function error(msg) {
   var s = document.querySelector('#status');
-  s.innerHTML = typeof msg == 'string' ? msg : "failed";
+  s.innerHTML = typeof msg == 'string' ? msg : "Location lookup failure.";
   s.className = 'fail';
-
-  // console.log(arguments);
 }
 
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(success, error);
 } else {
-  error('not supported');
+  error('Location service not supported/authorized.');
+}
+
+// Form calls "searchNearMe" to perform ajax call to geolocation services
+function searchNearMe() {
+
+	var lat = document.getElementById("poslat").value;
+	var lon = document.getElementById("poslon").value;
+	var dist = document.getElementById("distance").value;
+	var urlStr = "/tbs?poslat=" + lat + "&poslon=" + lon + "&distance=" + dist;
+	ajaxCall(urlStr, "GET", function(respData) {
+		alert("got an ajax response");
+	});
+
+	return false;
 }
 
 function createXHR() {
@@ -64,62 +89,16 @@ function createXHR() {
 	return null;
 }
 
-function sendRequest(operation) {
-	var uname = document.getElementById('username').value;
-	if(uname === '') {
-		document.getElementById('echo').innerHTML = 'Please input a valid username.';
-		document.getElementById('username').focus();
-		return;
-	}
-	var pass = document.getElementById('pw').value;
-  if(pass === '') {
-	  document.getElementById('echo').innerHTML = 'Please enter a password.';
-	  document.getElementById('pw').focus();
-	  return;
-  }
-	document.getElementById('echo').innerHTML = '';
+function ajaxCall(url, method, resultFn) {
 
-	document.getElementById('iotcredentials').submit();
-
-}
-
-function fred() {
 	var xhr = createXHR();
+
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4) {
-			var result = JSON.parse(xhr.responseText);
-			var value = result.value;
-			if (operation == "get") {
-				if (value === null) {
-					document.getElementById('echo').innerHTML = "No entry is found.";
-					document.getElementById('username').value = "";
-					document.getElementById('pw').value = "";
-				} else {
-					document.getElementById('pw').value = value;
-					document.getElementById('echo').innerHTML = "Get Corresponding entry value successfully.";
-				}
-			} else {
-				if (operation == "delete") {
-					document.getElementById('key').value = "";
-					document.getElementById('value').value = "";
-				}
-				document.getElementById('echo').innerHTML = value;
-			}
+			resultFn(JSON.parse(xhr.responseText));
 		}
 	};
 
-	if (operation == "get") {
-		xhr.open("GET", "cache/" + key, true);
-		xhr.send(null);
-	} else if (operation == "put") {
-		xhr.open("PUT", "cache?key=" + key + "&value=" + value, true);
-		xhr.send(null);
-	} else {
-		xhr.open("DELETE", "cache/" + key, true);
-		xhr.send(null);
-	}
-}
-
-function getDevice() {
-	sendRequest('get');
+	xhr.open(method, url, true);
+	xhr.send(null);
 }
