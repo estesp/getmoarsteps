@@ -1,9 +1,5 @@
-/* jshint node:true */
 
-/*
- * GET home page.
- */
-
+// GET initial page
 exports.index = function(req, res){
   res.render('index');
 };

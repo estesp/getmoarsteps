@@ -24,6 +24,26 @@ exports.getDeviceData = function(req, res) {
     //call the Wearable API for today's data, and then render the response page
     queryFitbitData(user, pw, currentDateToYMDForm(curDateTime),
                     function(respData) {
+                      //check for error codes:
+                      if (typeof respData.httpCode !== "undefined") {
+                        console.log("got an error: "+respData.httpCode);
+                        if (respData.httpCode == 400) {
+                          //we didn't get any results--one option is the "just
+                          //after midnight" problem where the Wearable API hasn't
+                          //pulled any data yet for the current date
+                          if (curDateTime.getHours() === 0) {
+                            //let's put up a message that no data is available yet
+                            respData["no_data"] = "early";
+                          } else {
+                            //could be an API endpoint or server/internet issue:
+                            //temporarily down/having issues
+                            respData["no_data"] = "error";
+                          }
+                        } else if (respData.httpCode == 401) {
+                          //log in failed
+                          respData["no_data"] = "login";
+                        }
+                      }
                       respData["daypercent"] = percentOfDay;
                       res.render('iotview', respData);
                     });
@@ -68,7 +88,7 @@ function queryFitbitData(username, password, datestr, callbackFn) {
       method: "GET",
       auth: authStr
     };
-    
+
     console.log("URL: "+host+" / Endpoint: "+endpoint);
 
     //send the request to the IoT API

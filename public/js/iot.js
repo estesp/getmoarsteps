@@ -18,7 +18,7 @@ function success(position) {
   var mapcanvas = document.createElement('div');
   mapcanvas.id = 'mapcanvas';
   mapcanvas.style.height = '400px';
-  mapcanvas.style.width = '400px';
+  mapcanvas.style.width = '480px';
 
   document.querySelector('article').appendChild(mapcanvas);
 
@@ -36,7 +36,8 @@ function success(position) {
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
 
-  var map = new google.maps.Map(document.getElementById("mapcanvas"),
+  //explicitly not using "var" because we want to access the map later
+  map = new google.maps.Map(document.getElementById("mapcanvas"),
 																myOptions);
 
   var marker = new google.maps.Marker({
@@ -45,6 +46,9 @@ function success(position) {
       title: "You are here! (at least within a "+ position.coords.accuracy +
 						 " meter radius)"
   });
+
+  //show the search capability since location was successful
+  document.getElementById('div-near-1').style.display = 'block';
 }
 
 function error(msg) {
@@ -66,8 +70,26 @@ function searchNearMe() {
 	var lon = document.getElementById("poslon").value;
 	var dist = document.getElementById("distance").value;
 	var urlStr = "/tbs?poslat=" + lat + "&poslon=" + lon + "&distance=" + dist;
+  //put up throbber to notify searching
+  document.getElementById('throbber-div-1').style.display = 'block';
+
 	ajaxCall(urlStr, "GET", function(respData) {
 		alert("got an ajax response");
+    document.getElementById('throbber-div-1').style.display = 'none';
+    if (respData.resultsCount === 0) {
+      //display "I'm sorry..couldn't find a park within your search distance"
+    } else {
+      respData.searchResults.forEach(function(placeEntry) {
+        //output the result entry to the web page
+        // placeEntry.distance == distance from orig lat/lon
+        // placeEntry.fields.name == official name
+        // placeEntry.fields.{lat,lng} == latitude and longitude
+        // placeEntry.fields.address == street address (may not exist)
+        // placeEntry.city == city name
+        // placeEntry.state == 2-letter state code
+
+      });
+    }
 	});
 
 	return false;

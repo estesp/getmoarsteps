@@ -8,7 +8,6 @@ exports.travelBoundary = function(req, res) {
     var lat = req.query.poslat;
     var lon = req.query.poslon;
 
-    console.log("GET /tbs: "+dist+" Lat: "+lat+", Lon: "+lon);
     getCredentials(env, 'TravelBoundary');
 
     queryBoundaryData(dist, lat, lon, function(polygonData) {
@@ -38,6 +37,9 @@ function queryBoundaryData(distance, lat, lon, callbackFn) {
     endpoint += "?latitude=" + lat + "&longitude=" + lon +
                 "&cost=" + distance + "&units=Minutes&appId="+tbsprops.appId;
 
+    //appears to be a potential issue with the SSL cert on the PitneyBowes
+    //boundary service; using "rejectUnauthorized: false" as option to the
+    //HTTPS Node.js module until this problem is corrected
     var options = {
       host: host,
       path: endpoint,
@@ -52,12 +54,19 @@ function queryBoundaryData(distance, lat, lon, callbackFn) {
 
 function findParksInPolygon(polygonData, callbackFn) {
 
-    var mq_appKey = "Fmjtd%7Cluur2g61n0%2C2s%3Do5-9aznuf";
+    // MapQuest API host
     var host = "www.mapquestapi.com";
+    //community version API key to MapQuest services
+    var mq_appKey = "Fmjtd%7Cluur2g61n0%2C2s%3Do5-9aznuf";
+
+    //search USA dataset with group == Parks code
     var searchParksOnly = "&hostedData=mqap.ntpois|group_sic_code=?|799951"
+    //polygon search endpoint + API key and above Parks restriction
     var endpoint = "/search/v2/polygon?key="+mq_appKey+searchParksOnly;
     endpoint += "&polygon=";
 
+    //iterate through the polygon from the PitneyBowes service and add to
+    //the API call to MapQuest
     var polygonResult = polygonData.Output.IsoPolygonResponse.Polygon[0];
     (polygonResult.Exterior.LineString[0].Pos).forEach(function (point) {
       endpoint += ""+point.Y+","+point.X+",";
