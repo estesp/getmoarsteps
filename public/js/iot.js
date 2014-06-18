@@ -82,9 +82,9 @@ function searchNearMe() {
 
     var resultsDiv = document.getElementById("search-results");
     if (respData.resultsCount === 0) {
-      resultsDiv.innerHTML = "<span class='no-results'>"+
+      resultsDiv.innerHTML = "<div class='no-results'>"+
             "I'm sorry, we couldn't find any parks within your travel time"+
-            " selection.  Please change your selections and try again.</span>";
+            " selection.  Please change your selections and try again.</div>";
     } else {
       //output the result entry to the web page
       // placeEntry.distance == distance from orig lat/lon

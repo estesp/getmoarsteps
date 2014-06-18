@@ -163,16 +163,19 @@ a.mapLink {
   font-weight: bold;
 }
 
-span.no-results {
-  font-weight: 600;
+div.no-results {
+  font-weight: 300;
   font-size: 1.3em;
   color: #a7b0b6;
+  text-align: center;
+  font-style: italic;
+  padding-top: 10px;
 }
 
 span.placeName a.mapLink {
   font-weight: 300;
   color: #6d6dbd;
-  font-size: 1em;
+  font-size: .9em;
 }
 
 span .status {
