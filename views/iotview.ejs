@@ -31,14 +31,15 @@
     </div>
     <% } else { %>
       <div class="status">
-        Hey, pretty good day so far!
+        <%= welcome_msg %>
       </div>
       <div class="fbinfobox">
         <div class="fbdetail">
-          <b><%= (summary.steps/goals.steps*100).toPrecision(2) %>%</b> of your daily goal.<br/>
+          <% var pctGoal = summary.steps/goals.steps*100; %>
+          <b><%= pctGoal.toPrecision((pctGoal > 99) ? 3 : 2) %>%</b> of your daily goal.<br/>
           <i>(<%= (daypercent).toPrecision(2) %>% of today is gone)</i><br/>
-          Fairly/high activity time: <b><%= (summary.veryActiveMinutes+summary.fairlyActiveMinutes) %> min</b><br/>
-          Sedentary time: <b><%= (summary.sedentaryMinutes/60).toFixed(2) %> hrs</b>
+          Fairly/highly active: <b><%= (summary.veryActiveMinutes+summary.fairlyActiveMinutes) %> min</b><br/>
+          Sleep+Sedentary time: <b><%= (summary.sedentaryMinutes/60).toFixed(2) %> hrs</b>
         </div>
         <div>
           <div class="steps"><%= (summary.steps).toString().split( /(?=(?:\d{3})+(?:\.|$))/g ).join( "," ) %></div>
@@ -77,6 +78,8 @@
           <input type="hidden" id="poslat" name="poslat" value=""/>
           <input type="hidden" id="poslon" name="poslon" value=""/>
         </form>
+        <div class="search-results" id="search-results">
+        </div>
         <div class="throbber-div" id="throbber-div-1">
           <img src="/images/throbber.gif" class="ajax-loader"/>
         </div>

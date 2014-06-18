@@ -145,6 +145,14 @@ h1 {
   display: none;
 }
 
+.search-results {
+  display: none;
+}
+
+table.searchResults {
+  width: 100%;
+}
+
 span .status {
   font-weight: 600;
   font-size: 0.685em;

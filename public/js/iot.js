@@ -72,23 +72,43 @@ function searchNearMe() {
 	var urlStr = "/tbs?poslat=" + lat + "&poslon=" + lon + "&distance=" + dist;
   //put up throbber to notify searching
   document.getElementById('throbber-div-1').style.display = 'block';
+  document.getElementById('search-results').style.display = 'none';
 
 	ajaxCall(urlStr, "GET", function(respData) {
-		alert("got an ajax response");
-    document.getElementById('throbber-div-1').style.display = 'none';
-    if (respData.resultsCount === 0) {
-      //display "I'm sorry..couldn't find a park within your search distance"
-    } else {
-      respData.searchResults.forEach(function(placeEntry) {
-        //output the result entry to the web page
-        // placeEntry.distance == distance from orig lat/lon
-        // placeEntry.fields.name == official name
-        // placeEntry.fields.{lat,lng} == latitude and longitude
-        // placeEntry.fields.address == street address (may not exist)
-        // placeEntry.city == city name
-        // placeEntry.state == 2-letter state code
 
-      });
+    document.getElementById('search-results').style.display = 'block';
+
+    document.getElementById('throbber-div-1').style.display = 'none';
+
+    var resultsDiv = document.getElementById("search-results");
+    if (respData.resultsCount === 0) {
+      resultsDiv.innerHTML = "<span class='no-results'>"+
+            "I'm sorry, we couldn't find any parks within your travel time"+
+            " selection.  Please change your selections and try again.</span>";
+    } else {
+      //output the result entry to the web page
+      // placeEntry.distance == distance from orig lat/lon
+      // placeEntry.fields.name == official name
+      // placeEntry.fields.{lat,lng} == latitude and longitude
+      // placeEntry.fields.address == street address (may not exist)
+      // placeEntry.city == city name
+      // placeEntry.state == 2-letter state code
+      //mustache.js template for search results
+      var resultTmpl = "{{#searchResults}}\n<tr class='resultRow'>" +
+              "<td class='placeName'>{{fields.name}}</td>" +
+              "<td class='placeDetails'>{{fields.address}}<br/>"+
+              "{{fields.city}}, {{fields.state}}</td>"+
+              "<td class='placeDist'>{{distance}}</td></tr>\n"+
+              "{{/searchResults}}";
+
+      var htmlOut = Mustache.render(resultTmpl, respData);
+      var htmlStart = "<table class='searchResults'>";
+
+      resultsDiv.innerHTML = htmlStart+htmlOut+"</table>";
+
+      //respData.searchResults.forEach(function(placeEntry) {
+
+      //});
     }
 	});
 

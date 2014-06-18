@@ -25,27 +25,17 @@ exports.getDeviceData = function(req, res) {
     queryFitbitData(user, pw, currentDateToYMDForm(curDateTime),
                     function(respData) {
                       //check for error codes:
-                      if (typeof respData.httpCode !== "undefined") {
-                        console.log("got an error: "+respData.httpCode);
-                        if (respData.httpCode == 400) {
-                          //we didn't get any results--one option is the "just
-                          //after midnight" problem where the Wearable API hasn't
-                          //pulled any data yet for the current date
-                          if (curDateTime.getHours() === 0) {
-                            //let's put up a message that no data is available yet
-                            respData["no_data"] = "early";
-                          } else {
-                            //could be an API endpoint or server/internet issue:
-                            //temporarily down/having issues
-                            respData["no_data"] = "error";
-                          }
-                        } else if (respData.httpCode == 401) {
-                          //log in failed
-                          respData["no_data"] = "login";
-                        }
+                      if (!handleError(respData)) {
+                        //if no errors, augment data with added display info
+                        var dayMsgIndex = Math.ceil(percentOfDay/100*4 - 1);
+                        var percentGoal = respData.summary.steps/respData.goals.steps;
+                        //since you can surpass the goal in steps, max at "100%" response
+                        var goalMsgIndex = Math.min(Math.ceil(percentGoal*4 - 1), 3);
+                        respData["welcome_msg"] = messages.welcome_messages[dayMsgIndex][goalMsgIndex];
+                        respData["daypercent"] = percentOfDay;
                       }
-                      respData["daypercent"] = percentOfDay;
-                      res.render('iotview', respData);
+
+                      res.render('iotview', respData)
                     });
 
 };
@@ -95,6 +85,35 @@ function queryFitbitData(username, password, datestr, callbackFn) {
     restcall.get(options, true, callbackFn);
 }
 
+function handleError(respData) {
+  var errorCondition = false;
+
+  if (typeof respData.httpCode !== "undefined") {
+    errorCondition = true;
+    console.log("Wearable API Error: code "+respData.httpCode);
+    if (respData.httpCode == 400) {
+      //we didn't get any results--one option is the "just
+      //after midnight" problem where the Wearable API hasn't
+      //pulled any data yet for the current date
+      if (curDateTime.getHours() === 0) {
+        //let's put up a message that no data is available yet
+        respData["no_data"] = "early";
+      } else {
+        //could be an API endpoint or server/internet issue:
+        //temporarily down/having issues
+        respData["no_data"] = "error";
+      }
+    } else if (respData.httpCode == 401) {
+      //log in failed, report this specifically so end user knows
+      respData["no_data"] = "login";
+    } else {
+      //other unknown error code--just report it
+      respData["no_data"] = "error";
+    }
+  }
+  return errorCondition;
+}
+
 function getCredentials(vcapEnv, serviceNameStr) {
 
     vcapEnv['user-provided'].forEach(function(service) {
@@ -103,3 +122,32 @@ function getCredentials(vcapEnv, serviceNameStr) {
       }
     });
 }
+
+//simple method for storing cheesy messages to offer the end user, depending
+//on time of day (broken into 4 quadrants) and percent of goal met (also
+//divided into 4 quadrants), giving us a 4x4 matrix of messages, which some
+//simple math on the fitbit data will give us an offset into
+var messages = { "welcome_messages" :
+   [
+    [ "You are probably still asleep..you'll have plenty of time to get steps later.",
+      "Walking in your sleep again?",
+      "Wow--burning the midnight oil I guess?!",
+      "You've already met your goal before most people are awake for the day..bravo!"
+    ],
+    [ "Maybe you should think about getting some movement in before long..take a quick break!",
+      "You're basically right on track to meet your goal!",
+      "Great job.. you are well on your way to exceeding today's step goal!",
+      "Looks like you will be an overachiever today."
+    ],
+    [ "You've got some serious ground to cover, literally!  Might want to look up a place to hike later.",
+      "Falling behind a bit.. step it up (no pun intended).",
+      "Doing well, keep it up!",
+      "Looks like you can meet your goal AND sit and watch TV all evening!"
+    ],
+    [ "Not much time left--better get moving!",
+      "Still need to get in quite a few steps before you relax.. time for an evening walk?",
+      "Almost there, just a little more activity and you've met your goal!",
+      "Looks like a good day for meeting your goals!"
+    ]
+   ]
+};
