@@ -151,6 +151,22 @@ h1 {
 
 table.searchResults {
   width: 100%;
+  font-size: 1.4em;
+}
+
+td.placeName {
+  vertical-align: top;
+}
+
+a.mapLink {
+  color: #6d6dbd;
+  font-weight: bold;
+}
+
+span.no-results {
+  font-weight: 600;
+  font-size: 1.3em;
+  color: #a7b0b6;
 }
 
 span .status {

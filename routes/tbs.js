@@ -54,10 +54,10 @@ function queryBoundaryData(distance, lat, lon, callbackFn) {
 
 function findParksInPolygon(polygonData, callbackFn) {
 
-    // MapQuest API host
-    var host = "www.mapquestapi.com";
-    //community version API key to MapQuest services
-    var mq_appKey = "Fmjtd%7Cluur2g61n0%2C2s%3Do5-9aznuf";
+    // MapQuest API host - added in BlueMix user-defined env data
+    var host = process.env.mqHost;
+    //community version API key to MapQuest services - from user env data
+    var mq_appKey = process.env.mqAPIKey;
 
     //search USA dataset with group == Parks code
     var searchParksOnly = "&hostedData=mqap.ntpois|group_sic_code=?|799951"

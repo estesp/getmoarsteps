@@ -94,10 +94,14 @@ function searchNearMe() {
       // placeEntry.city == city name
       // placeEntry.state == 2-letter state code
       //mustache.js template for search results
+      var gmapLink = "<a target='_new' class='mapLink' href="+
+                      "'https://www.google.com/maps?saddr=My+Location&daddr=";
+
       var resultTmpl = "{{#searchResults}}\n<tr class='resultRow'>" +
-              "<td class='placeName'>{{fields.name}}</td>" +
+              "<td class='placeName'>"+gmapLink+"{{fields.lat}},{{fields.lng}}"+
+              "'>{{fields.name}}</a></td>\n" +
               "<td class='placeDetails'>{{fields.address}}<br/>"+
-              "{{fields.city}}, {{fields.state}}</td>"+
+              "{{fields.city}}, {{fields.state}}</td>\n"+
               "<td class='placeDist'>{{distance}}</td></tr>\n"+
               "{{/searchResults}}";
 
@@ -106,9 +110,38 @@ function searchNearMe() {
 
       resultsDiv.innerHTML = htmlStart+htmlOut+"</table>";
 
-      //respData.searchResults.forEach(function(placeEntry) {
+      //also add markers on the map for each result
+      respData.searchResults.forEach(function(placeEntry) {
 
-      //});
+        //create the marker and then expand the current map view
+        //to make it visible
+        var latlng = new google.maps.LatLng(placeEntry.fields.lat,
+                                            placeEntry.fields.lng);
+        var marker = new google.maps.Marker({
+            position: latlng,
+            map: map,
+            title: placeEntry.fields.name,
+            icon: {
+              url: "/images/park-map-marker.png",
+              scaledSize: new google.maps.Size(48,48)
+            }
+        });
+        var curBounds = map.getBounds();
+        curBounds = curBounds.extend(latlng);
+        map.fitBounds(curBounds);
+
+        var htmlContent = "<div class='infobox'>" +
+                  "<span class='placeName'>"+placeEntry.fields.name+"</span>"+
+                  "</div>";
+
+        var infoWindow = new google.maps.InfoWindow({
+          content: htmlContent
+        });
+
+        google.maps.event.addListener(marker, 'click', function() {
+          infoWindow.open(map, marker);
+        });
+      });
     }
 	});
 
