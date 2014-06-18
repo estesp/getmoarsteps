@@ -169,6 +169,12 @@ span.no-results {
   color: #a7b0b6;
 }
 
+span.placeName a.mapLink {
+  font-weight: 300;
+  color: #6d6dbd;
+  font-size: 1em;
+}
+
 span .status {
   font-weight: 600;
   font-size: 0.685em;

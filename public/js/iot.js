@@ -101,8 +101,7 @@ function searchNearMe() {
               "<td class='placeName'>"+gmapLink+"{{fields.lat}},{{fields.lng}}"+
               "'>{{fields.name}}</a></td>\n" +
               "<td class='placeDetails'>{{fields.address}}<br/>"+
-              "{{fields.city}}, {{fields.state}}</td>\n"+
-              "<td class='placeDist'>{{distance}}</td></tr>\n"+
+              "{{fields.city}}, {{fields.state}}</td></tr>\n"+
               "{{/searchResults}}";
 
       var htmlOut = Mustache.render(resultTmpl, respData);
@@ -131,8 +130,11 @@ function searchNearMe() {
         map.fitBounds(curBounds);
 
         var htmlContent = "<div class='infobox'>" +
-                  "<span class='placeName'>"+placeEntry.fields.name+"</span>"+
-                  "</div>";
+                "<span class='placeName'>"+placeEntry.fields.name+"</span>"+
+                "<br/>"+
+                gmapLink+placeEntry.fields.lat+","+placeEntry.fields.lng+"'>"+
+                "[click for directions]</a>"+
+                "</div>";
 
         var infoWindow = new google.maps.InfoWindow({
           content: htmlContent
