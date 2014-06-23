@@ -25,7 +25,7 @@ exports.getDeviceData = function(req, res) {
     queryFitbitData(user, pw, currentDateToYMDForm(curDateTime),
                     function(respData) {
                       //check for error codes:
-                      if (!handleError(respData)) {
+                      if (!handleError(respData, curDateTime)) {
                         //if no errors, augment data with added display info
                         var dayMsgIndex = Math.ceil(percentOfDay/100*4 - 1);
                         var percentGoal = respData.summary.steps/respData.goals.steps;
@@ -85,7 +85,7 @@ function queryFitbitData(username, password, datestr, callbackFn) {
     restcall.get(options, true, callbackFn);
 }
 
-function handleError(respData) {
+function handleError(respData, curDateTime) {
   var errorCondition = false;
 
   if (typeof respData.httpCode !== "undefined") {
