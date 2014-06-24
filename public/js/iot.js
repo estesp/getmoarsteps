@@ -3,6 +3,7 @@
  * Licensed: https://github.com/remy/html5demos/blob/master/MIT-LICENSE.TXT
  */
 
+
 function success(position) {
   var s = document.querySelector('#status');
 
@@ -35,6 +36,9 @@ function success(position) {
     navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL},
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
+
+  //[global] hash used for map place markers in search results (cached)
+  markerSet = {};
 
   //explicitly not using "var" because we want to access the map later
   map = new google.maps.Map(document.getElementById("mapcanvas"),
@@ -86,7 +90,7 @@ function searchNearMe() {
             "I'm sorry, we couldn't find any parks within your travel time"+
             " selection.  Please change your selections and try again.</div>";
     } else {
-      //output the result entry to the web page
+      //output the results entries to a table of search results
       // placeEntry.distance == distance from orig lat/lon
       // placeEntry.fields.name == official name
       // placeEntry.fields.{lat,lng} == latitude and longitude
@@ -109,14 +113,28 @@ function searchNearMe() {
 
       resultsDiv.innerHTML = htmlStart+htmlOut+"</table>";
 
+      //hide current markers in case this search result is a different set
+      (Object.keys(markerSet)).forEach(function(markerKey) {
+        markerSet[markerKey].setVisible(false);
+      });
+
+      var latlngList = []; //for bounds setting of the current map view
+
       //also add markers on the map for each result
       respData.searchResults.forEach(function(placeEntry) {
+
+        var entryKey = placeEntry.fields.lat + "," + placeEntry.fields.lng;
 
         //create the marker and then expand the current map view
         //to make it visible
         var latlng = new google.maps.LatLng(placeEntry.fields.lat,
                                             placeEntry.fields.lng);
-        var marker = new google.maps.Marker({
+        latlngList[latlngList.length] = latlng;
+
+        if (markerSet[entryKey] === undefined) {
+          //first time we've seen this lat/lng - create a marker
+          //and infowindow for this location
+          var marker = new google.maps.Marker({
             position: latlng,
             map: map,
             title: placeEntry.fields.name,
@@ -124,26 +142,40 @@ function searchNearMe() {
               url: "/images/park-map-marker.png",
               scaledSize: new google.maps.Size(48,48)
             }
-        });
-        var curBounds = map.getBounds();
-        curBounds = curBounds.extend(latlng);
-        map.fitBounds(curBounds);
+          });
 
-        var htmlContent = "<div class='infobox'>" +
-                "<span class='placeName'>"+placeEntry.fields.name+"</span>"+
-                "<br/>"+
-                gmapLink+placeEntry.fields.lat+","+placeEntry.fields.lng+"'>"+
-                "[click for directions]</a>"+
-                "</div>";
+          var htmlContent = "<div class='infobox'>" +
+              "<span class='placeName'>"+placeEntry.fields.name+"</span>"+
+              "<br/>"+
+              gmapLink+placeEntry.fields.lat+","+placeEntry.fields.lng+"'>"+
+              "[click for directions]</a>"+
+              "</div>";
 
-        var infoWindow = new google.maps.InfoWindow({
-          content: htmlContent
-        });
+          var infoWindow = new google.maps.InfoWindow({
+                                content: htmlContent
+                           });
 
-        google.maps.event.addListener(marker, 'click', function() {
-          infoWindow.open(map, marker);
-        });
+          google.maps.event.addListener(marker, 'click', function() {
+                infoWindow.open(map, marker);
+              });
+
+          markerSet[entryKey] = marker;
+        } else {
+          //we already had this marker in a previous search result; re-show
+          markerSet[entryKey].setVisible(true);
+        }
+
       });
+
+      // iterate over visible lat lngs and try and set proper map bounds
+      // 1. reset zoom to original level
+      map.setZoom(15);
+      // 2. iterate over search results lat/lng list, and set bounds object
+      var curBounds = map.getBounds();
+      for (index = 0; index < latlngList.length; index++) {
+        curBounds = curBounds.extend(latlngList[index]);
+      }
+      map.fitBounds(curBounds);
     }
 	});
 
