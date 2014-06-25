@@ -38,8 +38,8 @@
           <% var pctGoal = summary.steps/goals.steps*100; %>
           <b><%= pctGoal.toPrecision((pctGoal > 99) ? 3 : 2) %>%</b> of your daily goal.<br/>
           <i>(<%= (daypercent).toPrecision(2) %>% of today is gone)</i><br/>
-          Fairly/highly active: <b><%= (summary.veryActiveMinutes+summary.fairlyActiveMinutes) %> min</b><br/>
-          Sleep+Sedentary time: <b><%= (summary.sedentaryMinutes/60).toFixed(2) %> hrs</b>
+          Fairly+highly active: <b><%= (summary.veryActiveMinutes+summary.fairlyActiveMinutes) %> min</b><br/>
+          Sleep+sedentary time: <b><%= (summary.sedentaryMinutes/60).toFixed(2) %> hrs</b>
         </div>
         <div>
           <div class="steps"><%= (summary.steps).toString().split( /(?=(?:\d{3})+(?:\.|$))/g ).join( "," ) %></div>
