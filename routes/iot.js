@@ -70,7 +70,8 @@ function queryFitbitData(username, password, datestr, callbackFn) {
     var iotURLObj = url.parse(iotprops.url);
     var host = iotURLObj.host;
     var authStr = username+":"+password;
-    var endpoint = "/iot/doc?id=fb_activity_"+datestr+"&appId="+iotprops.appId;
+    //switch to IOT 1.2 API endpoint due to problems with 1.0
+    var endpoint = "/iotlabs1.2/doc?id="+username+":fb_activity_"+datestr+"&appId="+iotprops.appId;
 
     var options = {
       host: host,
